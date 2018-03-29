@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"net/url"
+	"os"
 
 	"github.com/ChimeraCoder/anaconda"
 	"github.com/fatih/color"
@@ -17,18 +19,31 @@ type APIConf struct {
 	AccessTokenSecret string `yaml:"Access-Token-Secret"`
 }
 
-var apiConf APIConf
+var (
+	apiConf APIConf
+	text    = flag.String("t", "", "send tweet flag")
+	api     *anaconda.TwitterApi
+)
 
 func main() {
+	flag.Parse()
 	err := SetConfig(&apiConf)
 	if err != nil {
 		panic(err)
 	}
-	api := anaconda.NewTwitterApiWithCredentials(
+	api = anaconda.NewTwitterApiWithCredentials(
 		apiConf.AccessToken,
 		apiConf.AccessTokenSecret,
 		apiConf.ConsumerKey,
-		apiConf.ConsumerSecret)
+		apiConf.ConsumerSecret,
+	)
+	if *text != "" {
+		err := Tweet()
+		if err != nil {
+			panic(err)
+		}
+		os.Exit(0)
+	}
 
 	v := url.Values{}
 	s := api.UserStream(v)
@@ -61,6 +76,14 @@ func SetConfig(conf interface{}) error {
 	}
 
 	err = yaml.Unmarshal(buf, conf)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func Tweet() error {
+	_, err := api.PostTweet(*text, nil)
 	if err != nil {
 		return err
 	}
