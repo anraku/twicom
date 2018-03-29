@@ -52,7 +52,7 @@ func main() {
 	for t := range s.C {
 		switch v := t.(type) {
 		case anaconda.Tweet:
-			fmt.Printf("%-15s: %s\n", color.GreenString(v.User.ScreenName), v.Text)
+			color.Green("%-15s: %s\n", v.User.ScreenName, color.WhiteString(v.Text))
 		case anaconda.EventTweet:
 			switch v.Event.Event {
 			case "favorite":
